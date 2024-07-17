@@ -1,0 +1,21 @@
+name: single
+
+on:
+  - push
+
+env:
+  ALLURE_ENDPOINT: https://demo.testops.cloud
+  ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+  ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+  ALLURE_RESULTS: "build/allure-results"
+
+jobs:
+  all-tests:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v1
+      - name: install and configure allurectl
+        uses: allure-framework/setup-allurectl@v1
+      - name: single
+        run: allurectl watch -- bin/alluregen do --strategy ALL_PASSED --output ${ALLURE_RESULTS}

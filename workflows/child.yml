@@ -1,0 +1,26 @@
+name: child
+
+on:
+  workflow_call:
+    # Defaults here are for worflow_dispatch only, all other events are set in EnvSetup.setup-output-defaults:
+    inputs:
+      allure-ci-env:
+        type: string
+        description: 'allure-ci-env'
+        required: true
+
+env:
+  ALLURE_RESULTS: "build/allure-results"
+
+jobs:
+  all-tests:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    env:
+      ALLURE_CI_ENV: ${{ inputs.allure-ci-env }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: install and configure allurectl
+        uses: allure-framework/setup-allurectl@v1
+      - name: single
+        run: allurectl watch -- bin/alluregen do --strategy ALL_PASSED --output ${ALLURE_RESULTS}

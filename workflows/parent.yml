@@ -1,0 +1,42 @@
+name: parent
+
+on:
+  - push
+
+env:
+  ALLURE_ENDPOINT: https://demo.testops.cloud
+  ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+  ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+  ALLURE_RESULTS: "build/allure-results"
+
+jobs:
+  DownloadAllureCtl:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    outputs:
+      allure-ci-env: ${{ steps.setup-allure-env.outputs.allure-ci-env }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: install and configure allurectl
+        uses: allure-framework/setup-allurectl@v1
+      - name: setup allure env
+        id: setup-allure-env
+        run: echo "allure-ci-env=$(bin/allurectl ci env --encode)" >> $GITHUB_OUTPUT
+  RunTests:
+    runs-on: ubuntu-latest
+    needs: [ DownloadAllureCtl ]
+    permissions: write-all
+    env:
+      ALLURE_CI_ENV: ${{needs.DownloadAllureCtl.outputs.allure-ci-env}}
+    steps:
+      - uses: actions/checkout@v3
+      - name: install and configure allurectl
+        uses: allure-framework/setup-allurectl@v1
+      - name: tests
+        run: allurectl watch -- bin/alluregen do --strategy ALL_PASSED --output ${ALLURE_RESULTS}
+  InvokeWorkflow:
+    needs: [ DownloadAllureCtl ]
+    permissions: write-all
+    uses: koodeex/github_tests/.github/workflows/child.yml@main
+    with:
+      allure-ci-env: ${{needs.DownloadAllureCtl.outputs.allure-ci-env}}
