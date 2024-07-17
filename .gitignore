@@ -1,0 +1,10 @@
+# Idea
+.idea
+*.iml
+
+# Project
+/test.json
+/test.sh
+
+# Test tmp files
+/allure-results
